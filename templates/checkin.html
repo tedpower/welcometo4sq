@@ -1,0 +1,28 @@
+<script type="text/javascript">
+  $.getJSON('/fetch',
+            function(checkins) {
+              checkins.sort(function(c1, c2) { return c1.createdAt - c2.createdAt });
+               var checkin = checkins[checkins.length - 1];
+
+				if (window.checkintimestamp != checkin.id) {
+					window.checkintimestamp = checkin.id;
+					updateHereNowList(checkins);
+				   
+					if (checkin.isMayor) {
+						var str = ([	
+							'<img src="', checkin.user.photo.replace('_thumbs', ''), '">',
+							'<div>Your royal highness <em>',
+							checkin.user.firstName, '</em> is in the house!</div>'
+							]).join('');
+		               $('#checkins').html(str);
+					} else {
+						var str = ([	
+							'<img src="', checkin.user.photo.replace('_thumbs', ''), '">',
+							'<div>Everybody, say hi to your new friend <em>',
+							checkin.user.firstName, '</em>, clap clap</div>'
+							]).join('');
+						$('#checkins').html(str);
+					}
+				}
+            });
+</script>

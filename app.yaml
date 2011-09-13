@@ -1,0 +1,18 @@
+application: welcometo4sq
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /
+  static_files: index.html
+  upload: index.html
+  expiration: 0
+  login: required
+- url: /herenow
+  script: sample.py
+- url: /static
+  static_dir: static
+- url: /.*
+  script: sample.py
+  login: required
