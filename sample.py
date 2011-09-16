@@ -68,8 +68,7 @@ class OAuth(webapp.RequestHandler):
 class ReceiveHereNow(webapp.RequestHandler):
   """Received a pushed checkin and store it in the datastore."""
   def post(self):
-    json = simplejson.loads(self.request.body)
-    checkin_json = json['checkin']
+    checkin_json = simplejson.loads(self.request.get('checkin'))
     user_json = checkin_json['user']
     checkin = Checkin()
     checkin.fs_id = user_json['id']
