@@ -33,7 +33,7 @@ body {
   clear:both;
 }
 
-#herenowlist img {
+.oneperson img, .mayor img {
   height: 100px;
 }
 

@@ -8,57 +8,70 @@
 	<div id="checkins"></div>
 	<div id="herenowlist"></div>
 	<div id="herenowcount"></div>
-	<div id="auth"></div>
 	<div id="realCode"></div>
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
 	<script src="http://foursquare.com/scripts/apiexplorer.js"></script>
 	<script type="text/javascript">
-		$.getJSON('/config',
-              function(config) {
-                $('#auth').append('<a href="'+config.auth_uri+'">OAuth</a>');
-              });
-
 		function updateHereNowList() {
-		     $.getJSON('/fetchherenow?vid=128530',
-		               function(result) {
+		    $.getJSON('/fetchherenow',
+	           function(result) {
+		           	if(result['authed']) {
 						var myStr = (['<em>', result['count'], ' people</em> here now @ foursquare HQ']).join('');
-		                 $('#herenowcount').html(myStr);
-		                 var html = '';
-										 if (result['mayor']['ishere']) {
-                       html += '<div id="mayorwrap"><div class="mayor"><img src="' +
-                       result['mayor']['photo'] + 
-  										 '"><div class="name">' + 
-  										 result['mayor']['firstName'] + 
-  										 ' ' +
-  										 result['mayor']['lastName'] + 
-  										 '</div></div></div>';
-										 }
-		                 for (var i = 0; i < result['people'].length; ++i) {
-		                   html += '<div class="oneperson"><img src="' +
-																result['people'][i]['photo'] + 
-																'"><div class="name">' + 
-																result['people'][i]['firstName'] + 
-																' ' +
-																result['people'][i]['lastName'] + 
-																'</div></div>';
-		                 }
-		                 $('#herenowlist').html(html)
-		               });
-		   };
-		   updateHereNowList();
+		            	$('#herenowcount').html(myStr);
+		                var html = '';
+						if (result['mayor']['ishere']) {
+		                	html += '<div id="mayorwrap"><div class="mayor"><img src="' +
+		                	  result['mayor']['photo'] + 
+							  '"><div class="name">' + 
+							  result['mayor']['firstName'] + 
+							  ' '  +
+							  result['mayor']['lastName'] + 
+							  '</div></div></div>';
+						}
+		                
+		                for (var i = 0; i < result['people'].length; ++i) {
+		                	html += '<div class="oneperson"><img src="' +
+							  result['people'][i]['photo'] + 
+							  '"><div class="name">' + 
+							  result['people'][i]['firstName'] + 
+							  ' ' +
+							  result['people'][i]['lastName'] + 
+							  '</div></div>';
+		                }
+		                $('#herenowlist').html(html)
+		            } else {
+				        if (window.location.hash && window.location.hash.contains("#access_token=")) {
+				        	var code = window.location.hash.replace(/^#access_token=/, '');
+				        	if (code.match(/^[A-Z0-9]+$/)) {
+				        		$.getJSON('/oauth?access_token='+code);
+				        	}
+				        } else {
+					        $('#herenowlist').html('<div style="text-align: center; padding-top: 20px;">'
+				        	  + "Usually you\'d see a pretty list of the people here now right here.<br />"
+							  + "But you can't, since you're not connected to foursquare.<br /><br />"
+							  + '<a href="/login"><img src="static/connect-white.png" alt="connect to foursquare" /></a></div>'
+					        );
+					    }
+		            }
+		        }
+		    );
+		};
 
 		function updateCheckin() { 
 			$.ajax({
-			  url: "/checkin",
-			  cache: false,
-			  success: function(html){
-			    $("#realCode").html(html);
-			  }
-			 }); 
-			 setTimeout('updateCheckin()', 6000); 
+				url: "/checkin",
+				cache: false,
+				success: function(html){
+			    	$("#realCode").html(html);
+				}
+			}); 
+			setTimeout('updateCheckin()', 6000); 
 		}
 	
+		
+	   	// And call the two functions we just defined
+	    updateHereNowList();
 		updateCheckin();
 	
   </script>
