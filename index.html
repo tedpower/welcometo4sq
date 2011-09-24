@@ -41,7 +41,7 @@
 		                }
 		                $('#herenowlist').html(html)
 		            } else {
-				        if (window.location.hash && window.location.hash.contains("#access_token=")) {
+		            	if (window.location.hash && window.location.hash.indexOf("#access_token=") > -1) {
 				        	var code = window.location.hash.replace(/^#access_token=/, '');
 				        	if (code.match(/^[A-Z0-9]+$/)) {
 				        		$.getJSON('/oauth?access_token='+code);
