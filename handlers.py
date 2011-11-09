@@ -6,6 +6,7 @@ import urllib2
 
 from django.utils import simplejson
 
+from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -36,9 +37,13 @@ class ReceiveHereNow(webapp.RequestHandler):
     venue_id = checkin_json['venue']['id']
     # Only save the checkins for the target venue
     if (venue_id == config['target_venue']):
+      text_json = simplejson.dumps(checkin_json)
+      data = '[' + text_json + ']'
+      memcache.add(config['target_venue'], data, 3600)
+
       checkin = Checkin()
       checkin.fs_id = user_id
-      checkin.checkin_json = simplejson.dumps(checkin_json)
+      checkin.checkin_json = text_json
       checkin.venue_id = venue_id
       checkin.put()
     else:
@@ -72,9 +77,7 @@ class OAuthLanding(webapp.RequestHandler):
 # Fetch the checkins we've received via push.
 class FetchCheckins(webapp.RequestHandler):
   def get(self):
-    checkins = Checkin.all().order('-timestamp').fetch(100)
-    ret = [c.checkin_json for c in checkins]
-    self.response.out.write('['+ (','.join(ret)) +']')
+    self.response.out.write(getLatestCheckin())
 
 # Fetch the herenow data fresh from foursquare
 class FetchHereNow(webapp.RequestHandler):
@@ -139,6 +142,17 @@ def fetchJson(url):
     return simplejson.loads(result)
   except urllib2.URLError, e :
     logging.error(e)
+
+def getLatestCheckin():
+  data = memcache.get(config['target_venue'])
+  if data is not None:
+      return data
+  else:
+      checkins = Checkin.all().order('-timestamp').fetch(1)
+      ret = [c.checkin_json for c in checkins]
+      data = '[' + ret + ']'
+      memcache.add(config['target_venue'], data, 3600)
+      return data
 
 # RENDERING HELPERS
 # Return the render for a checkin
